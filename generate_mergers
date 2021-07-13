@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+############################
+### HIERARCHICAL MERGERS ###
+############################
+
+# --- Import packages --- #
+import numpy as np
+import pandas as pd
+
+import argparse
+import pdb
+
+# --- Argument handling --- #
+argp = argparse.ArgumentParser()
+argp.add_argument("--sample-path", type=str, required=True, help="Path to hyperposterior samples. Only Model C is currently accepted.")
+args = argp.parse_args()
+
+# --- Generate 1G population --- #
+from populations.generate_pops import FirstGenPop
+pop = FirstGenPop.get_samples(args.sample_path)
+pop.generate_population(Ndraws_per_post=100)
+
+pdb.set_trace()
