@@ -10,6 +10,8 @@ import gwpopulation
 from gwpopulation.conversions import convert_to_beta_parameters
 from bilby.core.result import read_in_result
 
+np.seterr(all='ignore')
+
 class FirstGenPop:
     """
     Generates first-generation population for seeding hierarchical merger trees
@@ -74,6 +76,7 @@ class FirstGenPop:
         # store population in this instance
         samples = pd.DataFrame(np.atleast_2d([m1s, m2s, qs, a1s, a2s, cost1s, cost1s]).T, \
             columns=['m1','m2','q','a1','a2','cost1','cost2'])
+        samples = samples.dropna()
         self.samples = samples
 
 
@@ -119,3 +122,10 @@ class FirstGenPop:
         cost2_draws = cdf_cos_t_interp(np.random.uniform(0, 1, self.Ndraws_per_post))
 
         return np.asarray(cost1_draws), np.asarray(cost2_draws)
+
+    def sample(self, N):
+        """
+        Sample N systems from this population
+        """
+        samples = self.samples.sample(N)
+        return samples

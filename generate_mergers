@@ -9,16 +9,82 @@ import numpy as np
 import pandas as pd
 
 import argparse
+import multiprocessing
+import time
+from tqdm import tqdm
 import pdb
+
+from populations.generate_pops import FirstGenPop
+from mergers.hierarchical import MergerTree
 
 # --- Argument handling --- #
 argp = argparse.ArgumentParser()
 argp.add_argument("--sample-path", type=str, required=True, help="Path to hyperposterior samples. Only Model C is currently accepted.")
+argp.add_argument("--method", type=str, required=True, help="Defines method for which to calculate merger trees. Current options are 'NG1G', 'NGNG', and 'equal_pairing'.")
+argp.add_argument("--Ntree", type=int, default=100, help="Number of merger trees to grow. Default=100.")
+argp.add_argument("--Nhierarch", type=int, default=10, help="Maximum number of hierarchical mergers (Ngen - 1). Default=10.")
+argp.add_argument("--sensitivity", type=str, default='midhighlatelow_network', help="Assumed network sensitivity for semianalytic VT weighting. Default='midhighlatelow_network'.")
+argp.add_argument("--Vesc", nargs="+", default=[30, 50, 100, 200, 300, 500, 1000], help="Escape velocity values used to prune the merger tree. Default='30 50 100 200 300 500 1000'.")
+argp.add_argument("--BH-budget", nargs="+", default=[50, 100, 500, 1000], help="BH budget values used to prune the merger tree. Default='50 100 500 1000'.")
+argp.add_argument("--output-path", type=str, help="Location where to write merger tree to disk. If unspecified, will not save it.")
+argp.add_argument("--multiproc", type=int, help="Number of processors to parallelize on. By default, will parallelize on as many CPUs as available on machine.")
+argp.add_argument("-V", "--verbose", action='store_true', help="Adds verbosity.")
 args = argp.parse_args()
 
+# --- Multiprocessing --- #
+Ncores = args.multiproc if args.multiproc is not None else multiprocessing.cpu_count()
+
 # --- Generate 1G population --- #
-from populations.generate_pops import FirstGenPop
-pop = FirstGenPop.get_samples(args.sample_path)
+if args.verbose:
+    print("\nGenerating 1G binaries from population model...\n")
+pop = FirstGenPop.get_samples(args.sample_path, Nsamps_from_post=100)
 pop.generate_population(Ndraws_per_post=100)
 
-pdb.set_trace()
+# --- Grow merger trees --- #
+if args.verbose:
+    print("\nGrowing {:d} {:s} merger trees with a maximum of {:d} hierarchies\n   parallelizing over {:d} cores...".format(args.Ntree, args.method, args.Nhierarch, Ncores))
+start = time.time()
+tree = MergerTree(args.method, args.Ntree, args.Nhierarch, Ncores)
+tree.grow(pop)
+end = time.time()
+if args.verbose:
+    print("   It took {:0.2f} seconds!".format(end-start))
+
+
+# --- Assign fiducial redshifts to population --- #
+if args.verbose:
+    print("\nAssigning redshifts to the merger products...\n")
+tree.assign_redshifts(tdelay_min=10, tdelay_max=100, z_max=1)
+
+
+# --- Apply selection effects --- #
+if args.verbose:
+    print("\nApplying selection effects to the population using {:s} sensitivity...\n".format(args.sensitivity))
+tree.apply_selection_effects(sensitivity=args.sensitivity, Mmax=None)
+
+
+# --- Prune trees --- #
+if args.verbose:
+    print("\nPruning trees...")
+# escape velocities
+vesc_vals = np.asarray(list(args.Vesc)).astype('int64')
+if args.verbose:
+    print("  based on host escape velocities: ")
+    print(["{:d} km/s".format(val) for val in vesc_vals])
+for vesc in tqdm(vesc_vals):
+    tree.prune_by_vesc(vesc)
+# BH budget
+BH_budget_vals = np.asarray(list(args.BH_budget)).astype('int64')
+if args.verbose:
+    print("  based on BH budget: ")
+    print(["{:d} BHs".format(val) for val in BH_budget_vals])
+for Nbh in tqdm(BH_budget_vals):
+    tree.prune_by_BHbudget(Nbh)
+
+
+# --- Save merger tree --- #
+if args.output_path:
+    if args.verbose:
+        print("\nSaving merger tree to disk at {:s}...\n".format(args.output_path))
+    tree.write(args.output_path)
+    
