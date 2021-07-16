@@ -37,7 +37,7 @@ Ncores = args.multiproc if args.multiproc is not None else multiprocessing.cpu_c
 # --- Generate 1G population --- #
 if args.verbose:
     print("\nGenerating 1G binaries from population model...\n")
-pop = FirstGenPop.get_samples(args.sample_path, Nsamps_from_post=100)
+pop = FirstGenPop.get_samples(args.sample_path, Nsamps_from_post=1000)
 pop.generate_population(Ndraws_per_post=100)
 
 # --- Grow merger trees --- #
