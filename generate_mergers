@@ -37,7 +37,7 @@ Ncores = args.multiproc if args.multiproc is not None else multiprocessing.cpu_c
 # --- Generate 1G population --- #
 if args.verbose:
     print("\nGenerating 1G binaries from population model...\n")
-pop = FirstGenPop.get_samples(args.sample_path, Nsamps_from_post=1000)
+pop = FirstGenPop.get_samples(args.sample_path, Nsamps_from_post=100)
 pop.generate_population(Ndraws_per_post=100)
 
 # --- Grow merger trees --- #
@@ -60,7 +60,7 @@ tree.assign_redshifts(tdelay_min=10, tdelay_max=100, z_max=1)
 # --- Apply selection effects --- #
 if args.verbose:
     print("\nApplying selection effects to the population using {:s} sensitivity...\n".format(args.sensitivity))
-tree.apply_selection_effects(sensitivity=args.sensitivity, Mmax=None)
+tree.apply_selection_effects(sensitivity=args.sensitivity)
 
 
 # --- Prune trees --- #

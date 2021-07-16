@@ -280,7 +280,7 @@ class MergerTree:
             self.mergers.loc[idx, 'z'] = merger_redshifts
         
 
-    def apply_selection_effects(self, sensitivity, grid_path='/Users/michaelzevin/research/selection_effects/data/pdet_grid.hdf5', Mmax=None):
+    def apply_selection_effects(self, sensitivity, grid_path='/Users/michaelzevin/research/selection_effects/data/pdet_grid.hdf5'):
         """
         Applies selection effects to the population based on thier masses and redshifts
 
@@ -288,12 +288,6 @@ class MergerTree:
         """
         VT_grid = pd.read_hdf(grid_path, key=sensitivity)
         self.mergers['pdets'], self.mergers['weights'] = detection_weights.selection_function(self.mergers, VT_grid)
-        # cut based on maximum total detector-frame mass, if specified
-        if Mmax is not None:
-            self.mergers.loc[(self.mergers['m1']*(1 + self.mergers['z']) + \
-                self.mergers['m2']*(1 + self.mergers['z'])) >= Mmax, 'pdets'] = 0.0
-            self.mergers.loc[(self.mergers['m1']*(1 + self.mergers['z']) + \
-                self.mergers['m2']*(1 + self.mergers['z'])) >= Mmax, 'weights'] = 0.0
 
 
     def prune_by_vesc(self, vesc):
