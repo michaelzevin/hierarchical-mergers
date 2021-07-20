@@ -14,13 +14,14 @@ import time
 from tqdm import tqdm
 import pdb
 
-from populations.generate_pops import FirstGenPop
+from populations.generate_pops import FirstGenPop_LVC, FirstGenPop_fixed
 from mergers.hierarchical import MergerTree
 
 # --- Argument handling --- #
 argp = argparse.ArgumentParser()
-argp.add_argument("--sample-path", type=str, required=True, help="Path to hyperposterior samples. Only Model C is currently accepted.")
-argp.add_argument("--method", type=str, required=True, help="Defines method for which to calculate merger trees. Current options are 'NG1G', 'NGNG', and 'equal_pairing'.")
+argp.add_argument("--method", type=str, required=True, help="Defines method for which to calculate merger trees. Current options are 'NG1G', 'NGNG', and 'EqualPairing'.")
+argp.add_argument("--firstgen-pop", type=str, required=True, help="Determines which model to use for generating the initial BH population. Choices are either 'LVC' which uses the hyperposterior samples from Model C, or 'fixed' which uses distributions flat in masses and spins.")
+argp.add_argument("--firstgen-samples", type=str, help="Path to hyperposterior samples. Required if firstgen-pop='LVC'. Only Model C is currently accepted.")
 argp.add_argument("--Ntree", type=int, default=100, help="Number of merger trees to grow. Default=100.")
 argp.add_argument("--Nhierarch", type=int, default=10, help="Maximum number of hierarchical mergers (Ngen - 1). Default=10.")
 argp.add_argument("--sensitivity", type=str, default='midhighlatelow_network', help="Assumed network sensitivity for semianalytic VT weighting. Default='midhighlatelow_network'.")
@@ -37,8 +38,16 @@ Ncores = args.multiproc if args.multiproc is not None else multiprocessing.cpu_c
 # --- Generate 1G population --- #
 if args.verbose:
     print("\nGenerating 1G binaries from population model...\n")
-pop = FirstGenPop.get_samples(args.sample_path, Nsamps_from_post=1000)
-pop.generate_population(Ndraws_per_post=100)
+if args.firstgen_pop=='LVC':
+    if args.firstgen_samples == None:
+        raise NameError("If using the LVC hyperposterior samples for generating the 1G population, also need to specify the path to where the samples live!")
+    pop = FirstGenPop_LVC.get_samples(args.sample_path, Nsamps_from_post=1000)
+    pop.generate_population(Ndraws_per_post=100)
+elif args.firstgen_pop=='fixed':
+    pop = FirstGenPop_fixed(int(1e6), Mmin=10, Mmax=20, amin=0, amax=0.1)
+    pop.generate_population()
+else:
+    raise NameError("The first-gen population sampling procedure you specified ({:s}) is not defined!".format(args.firstgen_pop))
 
 # --- Grow merger trees --- #
 if args.verbose:

@@ -122,7 +122,7 @@ class MergerTree:
             elif self._method=='NGNG':
                 m2, a2 = self.get_NG(Nmerge)
                 Nbh = 2**Nmerge
-            elif self._method=='equal_pairing':
+            elif self._method=='EqualPairing':
                 m2, a2 = m1, a1
                 Nbh = 2**Nmerge
             else:

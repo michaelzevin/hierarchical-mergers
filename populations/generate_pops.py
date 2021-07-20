@@ -12,7 +12,7 @@ from bilby.core.result import read_in_result
 
 np.seterr(all='ignore')
 
-class FirstGenPop:
+class FirstGenPop_LVC:
     """
     Generates first-generation population for seeding hierarchical merger trees
     """
@@ -28,7 +28,7 @@ class FirstGenPop:
         # Uses Power Law + Peak model
         model = gwpopulation.models.mass.SinglePeakSmoothedMassDistribution()
 
-        return FirstGenPop(hypersamples, model)
+        return FirstGenPop_LVC(hypersamples, model)
 
     def __init__(self, hypersamples, model):
         """
@@ -122,6 +122,72 @@ class FirstGenPop:
         cost2_draws = cdf_cos_t_interp(np.random.uniform(0, 1, self.Ndraws_per_post))
 
         return np.asarray(cost1_draws), np.asarray(cost2_draws)
+
+    def sample(self, N):
+        """
+        Sample N systems from this population
+        """
+        samples = self.samples.sample(N)
+        return samples
+
+
+
+
+class FirstGenPop_fixed:
+    """
+    Generates first-generation population for seeding hierarchical merger trees using flat distributions
+    """
+    def __init__(self, Nsamps, Mmin=10, Mmax=20, amin=0, amax=1):
+        """
+        Initialized FirstGenPop class
+        """
+        self.Nsamps = Nsamps
+        self.Mmin = Mmin
+        self.Mmax = Mmax
+        self.amin = amin
+        self.amax = amax
+
+    def generate_population(self):
+        """
+        Wrapper function to generate a first-generation population
+        """
+
+        # draw mass values
+        m1_draws = self.draw_masses(self.Mmin, self.Mmax, self.Nsamps)
+        m2_draws = self.draw_masses(self.Mmin, self.Mmax, self.Nsamps)
+        # draw spin magnitudes
+        a1s = self.draw_spinmags(self.amin, self.amax, self.Nsamps)
+        a2s = self.draw_spinmags(self.amin, self.amax, self.Nsamps)
+        # draw spin tilts
+        cost1s = self.draw_costilts(self.Nsamps)
+        cost2s = self.draw_costilts(self.Nsamps)
+        # flip masses and synthesize mass ratios
+        m1s, m2s = np.maximum(m1_draws, m2_draws), np.minimum(m1_draws, m2_draws)
+        qs = m2s/m1s
+        # store population in this instance
+        samples = pd.DataFrame(np.atleast_2d([m1s, m2s, qs, a1s, a2s, cost1s, cost1s]).T, \
+            columns=['m1','m2','q','a1','a2','cost1','cost2'])
+        samples = samples.dropna()
+        self.samples = samples
+
+
+    @staticmethod
+    def draw_masses(Mmin, Mmax, Nsamps):
+        """
+        Draw masses
+        """
+        m_draws = np.random.uniform(Mmin, Mmax, Nsamps)
+        return np.asarray(m_draws)
+
+    @staticmethod
+    def draw_spinmags(amin, amax, Nsamps):
+        a_draws = np.random.uniform(amin, amax, Nsamps)
+        return np.asarray(a_draws)
+
+    @staticmethod
+    def draw_costilts(Nsamps):
+        cost_draws = np.random.uniform(-1, 1, Nsamps)
+        return np.asarray(cost_draws)
 
     def sample(self, N):
         """
