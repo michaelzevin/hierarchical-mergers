@@ -17,7 +17,7 @@ from astropy.cosmology import Planck18 as cosmo
 import precession
 
 import sys
-sys.path.insert(1, '/Users/michaelzevin/research/git/selection_effects')
+sys.path.insert(1, '/Users/michaelzevin/research/git/selection-effects')
 from utils import detection_weights
 
 class MergerTree:
@@ -244,7 +244,7 @@ class MergerTree:
         return sfr_icdf_interp(rnd_variates)
 
 
-    def assign_redshifts(self, tdelay_min=10, tdelay_max=100, z_max=1, tlb_min=10):
+    def assign_redshifts(self, tdelay_min=0.001, tdelay_max=0.01, z_max=1, tlb_min=10):
         """
         Assign redshifts to the mergers in merger tree
 
