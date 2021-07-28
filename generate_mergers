@@ -22,11 +22,18 @@ argp = argparse.ArgumentParser()
 argp.add_argument("--method", type=str, required=True, help="Defines method for which to calculate merger trees. Current options are 'NG1G', 'NGNG', and 'EqualPairing'.")
 argp.add_argument("--firstgen-pop", type=str, required=True, help="Determines which model to use for generating the initial BH population. Choices are either 'LVC' which uses the hyperposterior samples from Model C, or 'fixed' which uses distributions flat in masses and spins.")
 argp.add_argument("--firstgen-samples", type=str, help="Path to hyperposterior samples. Required if firstgen-pop='LVC'. Only Model C is currently accepted.")
+argp.add_argument("--sensitivity", type=str, default='midhighlatelow_network', help="Assumed network sensitivity for semianalytic VT weighting. Default='midhighlatelow_network'.")
+
 argp.add_argument("--Ntree", type=int, default=100, help="Number of merger trees to grow. Default=100.")
 argp.add_argument("--Nhierarch", type=int, default=10, help="Maximum number of hierarchical mergers (Ngen - 1). Default=10.")
-argp.add_argument("--sensitivity", type=str, default='midhighlatelow_network', help="Assumed network sensitivity for semianalytic VT weighting. Default='midhighlatelow_network'.")
+
+argp.add_argument("--tdelay-min", type=float, default=10, help="Minimum delay time between subsequent mergers, in Myr. Default=10.")
+argp.add_argument("--tdelay-max", type=float, default=100, help="Maximum delay time between subsequent mergers, in Myr. Default=100.")
+argp.add_argument("--z-max", type=float, default=1, help="Maximum redshift for seeding the population. Default=1.")
+
 argp.add_argument("--Vesc", nargs="+", default=[30, 50, 100, 200, 300, 500, 1000], help="Escape velocity values used to prune the merger tree. Default='30 50 100 200 300 500 1000'.")
 argp.add_argument("--BH-budget", nargs="+", default=[50, 100, 500, 1000], help="BH budget values used to prune the merger tree. Default='50 100 500 1000'.")
+
 argp.add_argument("--output-path", type=str, help="Location where to write merger tree to disk. If unspecified, will not save it.")
 argp.add_argument("--multiproc", type=int, help="Number of processors to parallelize on. By default, will parallelize on as many CPUs as available on machine.")
 argp.add_argument("-V", "--verbose", action='store_true', help="Adds verbosity.")
@@ -63,7 +70,7 @@ if args.verbose:
 # --- Assign fiducial redshifts to population --- #
 if args.verbose:
     print("\nAssigning redshifts to the merger products...\n")
-tree.assign_redshifts(tdelay_min=10, tdelay_max=100, z_max=1)
+tree.assign_redshifts(tdelay_min=args.tdelay_min, tdelay_max=args.tdelay_max, z_max=args.z_max)
 
 
 # --- Apply selection effects --- #
