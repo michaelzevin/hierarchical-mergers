@@ -23,7 +23,6 @@ from utils import detection_weights
 class MergerTree:
     """
     Generates `Ntree` merger trees for `Nhierarch` mergers
-    
     """
     def __init__(self, method, Ntree=100, Nhierarch=10, Ncores=1):
         """
@@ -47,9 +46,9 @@ class MergerTree:
         `NGNG` merges the merger product with an NG black hole
             of the same generation
 
-        Create a Pandas dataframe with index indicating each 
+        Create a Pandas dataframe with index indicating each
             merger tree, and rows the properties of each merger
-        Structure: ['m1', 'm2', 'a1', 'a2', 'tilt1', 'tilt2', 
+        Structure: ['m1', 'm2', 'a1', 'a2', 'tilt1', 'tilt2',
             'spin_phase', 'M_merge', 'a_merge', 'vkick', 'N_merge']
         Units: Msun, radians, km/s
         """
@@ -131,11 +130,11 @@ class MergerTree:
             tilt1, tilt2 = np.arccos(np.random.uniform(-1,1, 1)[0]), \
                 np.arccos(np.random.uniform(-1,1, 1)[0])
             spin_phase = np.random.uniform(0,2*np.pi, 1)[0]
-            
+
             Mtot = m1+m2
             q = np.min([m1,m2])/np.max([m1,m2])
             M_merge, a_merge, vkick = self.remnant_properties(Mtot, q, a1, a2, tilt1, tilt2, spin_phase)
-            
+
             df = df.append(pd.DataFrame([[m1, m2, q, a1, a2, tilt1, tilt2, spin_phase, M_merge, a_merge, vkick, Nmerge, Nbh]], columns=df_cols, index=[branch_idx]))
 
         return df
@@ -149,7 +148,7 @@ class MergerTree:
         a_merge = precession.finalspin(tilt1, tilt2, spin_phase, q, a1_red, a2_red)
         vkick = precession.finalkick(tilt1, tilt2, spin_phase, q, a1_red, a2_red, maxkick=False) * C.c.to(u.km/u.s).value
         return M_merge, a_merge, vkick
-            
+
     def get_NG(self, Nmerge):
         """
         Generates a merger product that has already proceeded through
@@ -209,7 +208,7 @@ class MergerTree:
                 M_merges = np.asarray(M_merges)
                 a_merges = np.asarray(a_merges)
                 vkicks = np.asarray(vkicks)
-            
+
             merger_ctr += 1
 
         # return properties of NG merger (should only be one left in these arrays!)
@@ -243,7 +242,7 @@ class MergerTree:
 
         rnd_variates = np.random.uniform(0,1, N)
         return sfr_icdf_interp(rnd_variates)
-        
+
 
     def assign_redshifts(self, tdelay_min=10, tdelay_max=100, z_max=1, tlb_min=10):
         """
@@ -278,7 +277,7 @@ class MergerTree:
             merger_redshifts = tlb_interp(merger_tlbs)
             self.mergers.loc[idx, 't_lookback'] = merger_tlbs
             self.mergers.loc[idx, 'z'] = merger_redshifts
-        
+
 
     def apply_selection_effects(self, sensitivity, grid_path='/Users/michaelzevin/research/selection_effects/data/pdet_grid.hdf5'):
         """
@@ -305,11 +304,11 @@ class MergerTree:
             if len(mergers_that_would_eject) > 0:
                 point_of_ejection = mergers_that_would_eject.min()
                 is_ejected[point_of_ejection:] = 0
-            
+
             # assign 0 if merger product is retained and 1 if the merger product was ejected
             self.mergers.loc[midx, series_name] = is_ejected
         self.mergers = self.mergers.astype({series_name: 'int64'})
-    
+
     def prune_by_BHbudget(self, BH_budget):
         """
         Prunes trees based on a prescribed black hole budget
@@ -324,7 +323,7 @@ class MergerTree:
             # set these mergers to 0
             if len(too_many_BHs) > 0:
                 no_more_BHs[too_many_BHs.min():] = 0
-            
+
             # assign 0 if merger product is retained and 1 if the merger product was ejected
             self.mergers.loc[midx, series_name] = no_more_BHs
         self.mergers = self.mergers.astype({series_name: 'int64'})
@@ -344,6 +343,6 @@ class MergerTree:
         bsgrp.attrs["Nhierarch"] = self._Nhierarch
         bsgrp.attrs["isotropic_spins"] = 'yes' if self.isotropic_spins==True else 'no'
         hfile.close()
-        
-        self.mergers.to_hdf(output_path, key='merger_tree/mergers') 
+
+        self.mergers.to_hdf(output_path, key='merger_tree/mergers')
 

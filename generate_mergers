@@ -96,4 +96,3 @@ if args.output_path:
     if args.verbose:
         print("\nSaving merger tree to disk at {:s}...\n".format(args.output_path))
     tree.write(args.output_path)
-    

@@ -55,7 +55,7 @@ class FirstGenPop_LVC:
         cost2s = np.array([])
         for ii in tqdm(range(len(self.hypersamples))):
             parameters = dict(self.hypersamples.iloc[ii])
-        
+
             # draw m1 values
             m1_draws = self.draw_m1(parameters)
             m1s = np.concatenate([m1s, m1_draws])
@@ -70,7 +70,7 @@ class FirstGenPop_LVC:
             cost1_draws, cost2_draws = self.draw_costilts(parameters)
             cost1s = np.concatenate([cost1s, cost1_draws])
             cost2s = np.concatenate([cost2s, cost2_draws])
-            
+
         # synthesize secondary masses
         m2s = m1s * qs
         # store population in this instance
