@@ -244,12 +244,12 @@ class MergerTree:
         return sfr_icdf_interp(rnd_variates)
 
 
-    def assign_redshifts(self, tdelay_min=0.001, tdelay_max=0.01, z_max=1, tlb_min=10):
+    def assign_redshifts(self, tdelay_min=10, tdelay_max=100, z_max=1, tlb_min=10):
         """
         Assign redshifts to the mergers in merger tree
 
         As of now, this follows Madau & Fragos 2017 for the first merger, and assigns redshifts
-        flat-in-log on the interval [10 Myr, 100 Myr] for subsequent mergers
+        flat-in-log on the interval [tdelay_min, tdelay_max for subsequent mergers (in Myr)
         """
         # first, get the redshifts for when the mergers started
         z_birth = self.draw_redshifts(self._Ntree, z_max=z_max)
