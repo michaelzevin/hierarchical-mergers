@@ -16,9 +16,7 @@ from astropy.cosmology import Planck18 as cosmo
 
 import precession
 
-import sys
-sys.path.insert(1, '../selection-effects')
-from utils import detection_weights
+from populations import detection_weights
 
 class MergerTree:
     """
