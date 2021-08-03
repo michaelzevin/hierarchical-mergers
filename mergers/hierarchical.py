@@ -279,13 +279,13 @@ class MergerTree:
             self.mergers.loc[idx, 'z'] = merger_redshifts
 
 
-    def apply_selection_effects(self, sensitivity, grid_path='/Users/michaelzevin/research/selection_effects/data/pdet_grid.hdf5'):
+    def apply_selection_effects(self, sensitivity, pdet_grid):
         """
         Applies selection effects to the population based on thier masses and redshifts
 
         Uses semi-analytic VT grid for determining detection probabilities and relative weights
         """
-        VT_grid = pd.read_hdf(grid_path, key=sensitivity)
+        VT_grid = pd.read_hdf(pdet_grid, key=sensitivity)
         self.mergers['pdets'], self.mergers['weights'] = detection_weights.selection_function(self.mergers, VT_grid)
 
 
