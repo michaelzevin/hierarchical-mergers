@@ -27,6 +27,11 @@ argp.add_argument("--sensitivity", type=str, default='midhighlatelow_network', h
 argp.add_argument("--Ntree", type=int, default=100, help="Number of merger trees to grow. Default=100.")
 argp.add_argument("--Nhierarch", type=int, default=10, help="Maximum number of hierarchical mergers (Ngen - 1). Default=10.")
 
+argp.add_argument("--M-min", type=float, default=10, help="Minimum mass for flat-in-log distribution for 'fixed' firstgen-pop, in Msun. Default=10.")
+argp.add_argument("--M-max", type=float, default=20, help="Maximum mass for flat-in-log distribution for 'fixed' firstgen-pop, in Msun. Default=20.")
+argp.add_argument("--a-min", type=float, default=0.0, help="Minimum spin for flat distribution for 'fixed' firstgen-pop. Default=0.0.")
+argp.add_argument("--a-max", type=float, default=1.0, help="Maximum spin for flat distribution for 'fixed' firstgen-pop. Default=1.0.")
+
 argp.add_argument("--tdelay-min", type=float, default=10, help="Minimum delay time between subsequent mergers, in Myr. Default=10.")
 argp.add_argument("--tdelay-max", type=float, default=100, help="Maximum delay time between subsequent mergers, in Myr. Default=100.")
 argp.add_argument("--z-max", type=float, default=1, help="Maximum redshift for seeding the population. Default=1.")
@@ -51,7 +56,7 @@ if args.firstgen_pop=='LVC':
     pop = FirstGenPop_LVC.get_samples(args.firstgen_samples, Nsamps_from_post=1000)
     pop.generate_population(Ndraws_per_post=100)
 elif args.firstgen_pop=='fixed':
-    pop = FirstGenPop_fixed(int(1e6), Mmin=10, Mmax=20, amin=0, amax=0.1)
+    pop = FirstGenPop_fixed(int(1e6), Mmin=args.M_min, Mmax=args.M_max, amin=args.a_min, amax=args.a_max)
     pop.generate_population()
 else:
     raise NameError("The first-gen population sampling procedure you specified ({:s}) is not defined!".format(args.firstgen_pop))

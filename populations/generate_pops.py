@@ -137,7 +137,7 @@ class FirstGenPop_fixed:
     """
     Generates first-generation population for seeding hierarchical merger trees using flat distributions
     """
-    def __init__(self, Nsamps, Mmin=10, Mmax=20, amin=0, amax=1):
+    def __init__(self, Nsamps, Mmin, Mmax, amin, amax):
         """
         Initialized FirstGenPop class
         """
