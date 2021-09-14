@@ -43,6 +43,10 @@ class MergerTree:
         `NG1G` merges the merger product with 1G black holes
         `NGNG` merges the merger product with an NG black hole
             of the same generation
+        `NGleNG` merges the merger product with a M<=N generation
+            black hole
+        `EqualPairing` merges the merger product with a black hole
+            of the exact same mass
 
         Create a Pandas dataframe with index indicating each
             merger tree, and rows the properties of each merger
@@ -97,31 +101,38 @@ class MergerTree:
         # phase
         spin_phase = np.random.uniform(0,2*np.pi, 1)[0]
 
-        Nmerge = 1   # merger number
-        Nbh = 2   # initial number of BHs
         Mtot = m1+m2
         q = np.min([m1,m2])/np.max([m1,m2])
 
         # properties of initial merger remnant
         M_merge, a_merge, vkick = self.remnant_properties(Mtot, q, a1, a2, tilt1, tilt2, spin_phase)
 
+        # track the number of mergers and number of BHs used up so far
+        Nmerge = 1   # merger number
+        Nbh = 2   # initial number of BHs
+
         df = df.append(pd.DataFrame([[m1, m2, q, a1, a2, tilt1, tilt2, spin_phase, M_merge, a_merge, vkick, Nmerge, Nbh]], columns=df_cols, index=[branch_idx]))
 
         # loop until we hit Nhierarch
         while Nmerge < self._Nhierarch:
-            Nmerge += 1
             m1 = M_merge
             a1 = a_merge
             if self._method=='NG1G':
                 new_binary = self.firstgen_pop.sample(1)
                 m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
-                Nbh = Nmerge+1
             elif self._method=='NGNG':
                 m2, a2 = self.get_NG(Nmerge)
-                Nbh = 2**Nmerge
+            elif self._method=='NGleNG':
+                # first, determine the number of mergers Nprime<=N for the merging BH
+                Nprime = int(np.random.randint(0,Nmerge+1, size=1))
+                # special treatment for Nprime=0 (1G BH)
+                if Nprime==0:
+                    new_binary = self.firstgen_pop.sample(1)
+                    m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                else:
+                    m2, a2 = self.get_NG(Nprime)
             elif self._method=='EqualPairing':
                 m2, a2 = m1, a1
-                Nbh = 2**Nmerge
             else:
                 raise NameError("The method you specified ({:s}) is not defined!".format(self._method))
             # spin tilt and phase
@@ -132,6 +143,19 @@ class MergerTree:
             Mtot = m1+m2
             q = np.min([m1,m2])/np.max([m1,m2])
             M_merge, a_merge, vkick = self.remnant_properties(Mtot, q, a1, a2, tilt1, tilt2, spin_phase)
+
+            # update number of mergers that have occurred
+            Nmerge += 1
+
+            # get the number of BHs used up so far
+            if self._method=='NG1G':
+                Nbh = Nmerge+1
+            elif self._method=='NGNG':
+                Nbh = 2**Nmerge
+            elif self._method=='NGleNG':
+                Nbh = 2**(Nmerge-1) + 2**(Nprime)
+            elif self._method=='EqualPairing':
+                Nbh = 2**Nmerge
 
             df = df.append(pd.DataFrame([[m1, m2, q, a1, a2, tilt1, tilt2, spin_phase, M_merge, a_merge, vkick, Nmerge, Nbh]], columns=df_cols, index=[branch_idx]))
 
@@ -155,11 +179,11 @@ class MergerTree:
         NOTE: This assumes that this BH is retain throughout all of its
            prior mergers!
         """
-        # We need 2^(Nmerge-1) BHs to generate the same generational "partner" of a NG BH
-        N_initial = int(2**(Nmerge-1) / 2)   # divide by 2 since we generate both primaries and secondaries
+        # We need 2^(Nmerge) BHs to generate the same generational "partner" of a NG BH
+        N_initial = int(2**(Nmerge) / 2)   # divide by 2 since we generate both primaries and secondaries
 
         merger_ctr = 1
-        while merger_ctr < Nmerge:
+        while merger_ctr <= Nmerge:
             # special treatment for first round since we generate both primaries and secondaries
             if merger_ctr==1:
                 new_binaries = self.firstgen_pop.sample(N_initial)
@@ -212,6 +236,7 @@ class MergerTree:
         # return properties of NG merger (should only be one left in these arrays!)
         assert len(M_merges)==1 and len(a_merges)==1 and len(vkicks)==1, "You screwed something up Zevin!"
         return float(M_merges[0]), float(a_merges[0])
+
 
 
     # --- Processing trees --- #

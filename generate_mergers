@@ -19,7 +19,7 @@ from mergers.hierarchical import MergerTree
 
 # --- Argument handling --- #
 argp = argparse.ArgumentParser()
-argp.add_argument("--method", type=str, required=True, help="Defines method for which to calculate merger trees. Current options are 'NG1G', 'NGNG', and 'EqualPairing'.")
+argp.add_argument("--method", type=str, required=True, help="Defines method for which to calculate merger trees. Current options are 'NG1G', 'NGNG', 'NGleNg', and 'EqualPairing'.")
 argp.add_argument("--firstgen-pop", type=str, required=True, help="Determines which model to use for generating the initial BH population. Choices are either 'LVC' which uses the hyperposterior samples from Model C, or 'fixed' which uses distributions flat in masses and spins.")
 argp.add_argument("--firstgen-samples", type=str, help="Path to hyperposterior samples. Required if firstgen-pop='LVC'. Only Model C is currently accepted.")
 argp.add_argument("--sensitivity", type=str, default='midhighlatelow_network', help="Assumed network sensitivity for semianalytic VT weighting. Default='midhighlatelow_network'.")
