@@ -17,6 +17,7 @@ import pdb
 from populations.generate_pops import FirstGenPop_LVC, FirstGenPop_fixed
 from mergers.hierarchical import MergerTree
 
+# test
 # --- Argument handling --- #
 argp = argparse.ArgumentParser()
 argp.add_argument("--method", type=str, required=True, help="Defines method for which to calculate merger trees. Current options are 'NG1G', 'NGNG', 'NGleNg', and 'EqualPairing'.")
