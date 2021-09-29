@@ -117,9 +117,13 @@ class MergerTree:
         while Nmerge < self._Nhierarch:
             m1 = M_merge
             a1 = a_merge
+            component_choice = np.random.random()   # draw random number to decide whether to use primary or secondary
             if self._method=='NG1G':
                 new_binary = self.firstgen_pop.sample(1)
-                m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                if component_choice < 0.5:
+                    m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                else:
+                    m2, a2 = float(new_binary['m2']), float(new_binary['a2'])
             elif self._method=='NGNG':
                 m2, a2 = self.get_NG(Nmerge)
             elif self._method=='NGleNG':
@@ -128,7 +132,10 @@ class MergerTree:
                 # special treatment for Nprime=0 (1G BH)
                 if Nprime==0:
                     new_binary = self.firstgen_pop.sample(1)
-                    m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                    if component_choice < 0.5:
+                        m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                    else:
+                        m2, a2 = float(new_binary['m2']), float(new_binary['a2'])
                 else:
                     m2, a2 = self.get_NG(Nprime)
             elif self._method=='EqualPairing':
