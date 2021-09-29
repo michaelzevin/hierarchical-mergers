@@ -242,7 +242,22 @@ class MergerTree:
     # --- Processing trees --- #
 
     @staticmethod
-    def draw_redshifts(N, z_max, mdl='2017'):
+    def draw_redshifts(N, z_max):
+        """
+        Draws `N` redshifts uniform in comoving volume
+        """
+
+        z_grid = np.linspace(0,z_max,5000)
+        sfr_grid = cosmo.differential_comoving_volume(z_grid)
+        sfr_cdf = cumulative_trapezoid(sfr_grid, z_grid, initial=0)
+        sfr_cdf /= sfr_cdf.max()
+        sfr_icdf_interp = interp1d(sfr_cdf, z_grid, fill_value="extrapolate")
+
+        rnd_variates = np.random.uniform(0,1, N)
+        return sfr_icdf_interp(rnd_variates)
+
+    @staticmethod
+    def draw_redshifts_madau(N, z_max, mdl='2017'):
         """
         Draws `N` redshifts according to Madau & Fragos 2017
         """
