@@ -117,18 +117,28 @@ class MergerTree:
         while Nmerge < self._Nhierarch:
             m1 = M_merge
             a1 = a_merge
+            component_choice = np.random.random()   # draw random number to decide whether to use primary or secondary
             if self._method=='NG1G':
                 new_binary = self.firstgen_pop.sample(1)
-                m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                if component_choice < 0.5:
+                    m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                else:
+                    m2, a2 = float(new_binary['m2']), float(new_binary['a2'])
             elif self._method=='NGNG':
                 m2, a2 = self.get_NG(Nmerge)
             elif self._method=='NGleNG':
-                # first, determine the number of mergers Nprime<=N for the merging BH
-                Nprime = int(np.random.randint(0,Nmerge+1, size=1))
+                # first, determine the number of mergers Nprime<=N for the companion BH, weighted as p(M) \propto 2^-(M-1)
+                Nprime_vals = np.arange(0, Nmerge+1)
+                Nprime_weights = 1. / (2**(Nprime_vals))
+                Nprime_weights /= np.sum(Nprime_weights)
+                Nprime = int(np.random.choice(Nprime_vals, p=Nprime_weights, size=1))
                 # special treatment for Nprime=0 (1G BH)
                 if Nprime==0:
                     new_binary = self.firstgen_pop.sample(1)
-                    m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                    if component_choice < 0.5:
+                        m2, a2 = float(new_binary['m1']), float(new_binary['a1'])
+                    else:
+                        m2, a2 = float(new_binary['m2']), float(new_binary['a2'])
                 else:
                     m2, a2 = self.get_NG(Nprime)
             elif self._method=='EqualPairing':
@@ -242,7 +252,22 @@ class MergerTree:
     # --- Processing trees --- #
 
     @staticmethod
-    def draw_redshifts(N, z_max, mdl='2017'):
+    def draw_redshifts(N, z_max):
+        """
+        Draws `N` redshifts uniform in comoving volume
+        """
+
+        z_grid = np.linspace(0,z_max,5000)
+        sfr_grid = cosmo.differential_comoving_volume(z_grid)
+        sfr_cdf = cumulative_trapezoid(sfr_grid, z_grid, initial=0)
+        sfr_cdf /= sfr_cdf.max()
+        sfr_icdf_interp = interp1d(sfr_cdf, z_grid, fill_value="extrapolate")
+
+        rnd_variates = np.random.uniform(0,1, N)
+        return sfr_icdf_interp(rnd_variates)
+
+    @staticmethod
+    def draw_redshifts_madau(N, z_max, mdl='2017'):
         """
         Draws `N` redshifts according to Madau & Fragos 2017
         """

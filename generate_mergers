@@ -14,7 +14,7 @@ import time
 from tqdm import tqdm
 import pdb
 
-from populations.generate_pops import FirstGenPop_LVC, FirstGenPop_fixed
+from populations.generate_pops import FirstGenPop_LVC, FirstGenPop_IMF, FirstGenPop_fixed
 from mergers.hierarchical import MergerTree
 
 # --- Argument handling --- #
@@ -29,8 +29,9 @@ argp.add_argument("--Nhierarch", type=int, default=10, help="Maximum number of h
 
 argp.add_argument("--M-min", type=float, default=10, help="Minimum mass for flat-in-log distribution for 'fixed' firstgen-pop, in Msun. Default=10.")
 argp.add_argument("--M-max", type=float, default=20, help="Maximum mass for flat-in-log distribution for 'fixed' firstgen-pop, in Msun. Default=20.")
-argp.add_argument("--a-min", type=float, default=0.0, help="Minimum spin for flat distribution for 'fixed' firstgen-pop. Default=0.0.")
-argp.add_argument("--a-max", type=float, default=1.0, help="Maximum spin for flat distribution for 'fixed' firstgen-pop. Default=1.0.")
+argp.add_argument("--a-min", type=float, default=0.0, help="Minimum spin for flat distribution for 'fixed' and 'IMF' firstgen-pop. Default=0.0.")
+argp.add_argument("--a-max", type=float, default=1.0, help="Maximum spin for flat distribution for 'fixed' and 'IMF' firstgen-pop. Default=1.0.")
+argp.add_argument("--alpha", type=float, default=-2.3, help="Power-law exponent for 'IMF' firstgen-pop. Default=-2.3.")
 
 argp.add_argument("--tdelay-min", type=float, default=10, help="Minimum delay time between subsequent mergers, in Myr. Default=10.")
 argp.add_argument("--tdelay-max", type=float, default=100, help="Maximum delay time between subsequent mergers, in Myr. Default=100.")
@@ -55,6 +56,9 @@ if args.firstgen_pop=='LVC':
         raise NameError("If using the LVC hyperposterior samples for generating the 1G population, also need to specify the path to where the samples live!")
     pop = FirstGenPop_LVC.get_samples(args.firstgen_samples, Nsamps_from_post=1000)
     pop.generate_population(Ndraws_per_post=100)
+elif args.firstgen_pop=='IMF':
+    pop = FirstGenPop_IMF(int(1e6), Mmin=args.M_min, Mmax=args.M_max, amin=args.a_min, amax=args.a_max, alpha=-2.3)
+    pop.generate_population()
 elif args.firstgen_pop=='fixed':
     pop = FirstGenPop_fixed(int(1e6), Mmin=args.M_min, Mmax=args.M_max, amin=args.a_min, amax=args.a_max)
     pop.generate_population()

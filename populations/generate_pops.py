@@ -133,6 +133,73 @@ class FirstGenPop_LVC:
 
 
 
+class FirstGenPop_IMF:
+    """
+    Generates first-generation population for seeding hierarchical merger trees according to a power-law IMF
+    """
+    def __init__(self, Nsamps, Mmin, Mmax, amin, amax, alpha=-2.3):
+        """
+        Initialized FirstGenPop class
+        """
+        self.Nsamps = Nsamps
+        self.Mmin = Mmin
+        self.Mmax = Mmax
+        self.amin = amin
+        self.amax = amax
+        self.alpha = alpha
+
+    def generate_population(self):
+        """
+        Wrapper function to generate a first-generation population
+        """
+
+        # draw mass values
+        m1_draws = self.draw_masses(self.Mmin, self.Mmax, self.alpha, self.Nsamps)
+        m2_draws = self.draw_masses(self.Mmin, self.Mmax, self.alpha, self.Nsamps)
+        # draw spin magnitudes
+        a1s = self.draw_spinmags(self.amin, self.amax, self.Nsamps)
+        a2s = self.draw_spinmags(self.amin, self.amax, self.Nsamps)
+        # draw spin tilts
+        cost1s = self.draw_costilts(self.Nsamps)
+        cost2s = self.draw_costilts(self.Nsamps)
+        # flip masses and synthesize mass ratios
+        m1s, m2s = np.maximum(m1_draws, m2_draws), np.minimum(m1_draws, m2_draws)
+        qs = m2s/m1s
+        # store population in this instance
+        samples = pd.DataFrame(np.atleast_2d([m1s, m2s, qs, a1s, a2s, cost1s, cost1s]).T, \
+            columns=['m1','m2','q','a1','a2','cost1','cost2'])
+        samples = samples.dropna()
+        self.samples = samples
+
+    @staticmethod
+    def draw_masses(Mmin, Mmax, alpha, Nsamps):
+        """
+        Draw masses
+        """
+        r = np.random.random(size=Nsamps)
+        ag, bg = Mmin ** (alpha + 1), Mmax ** (alpha + 1)
+        m_draws = (ag + (bg - ag) * r) ** (1.0 / (alpha + 1))
+        return np.asarray(m_draws)
+
+    @staticmethod
+    def draw_spinmags(amin, amax, Nsamps):
+        a_draws = np.random.uniform(amin, amax, Nsamps)
+        return np.asarray(a_draws)
+
+    @staticmethod
+    def draw_costilts(Nsamps):
+        cost_draws = np.random.uniform(-1, 1, Nsamps)
+        return np.asarray(cost_draws)
+
+    def sample(self, N):
+        """
+        Sample N systems from this population
+        """
+        samples = self.samples.sample(N)
+        return samples
+
+
+
 class FirstGenPop_fixed:
     """
     Generates first-generation population for seeding hierarchical merger trees using flat distributions
