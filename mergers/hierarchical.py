@@ -127,8 +127,11 @@ class MergerTree:
             elif self._method=='NGNG':
                 m2, a2 = self.get_NG(Nmerge)
             elif self._method=='NGleNG':
-                # first, determine the number of mergers Nprime<=N for the merging BH
-                Nprime = int(np.random.randint(0,Nmerge+1, size=1))
+                # first, determine the number of mergers Nprime<=N for the companion BH, weighted as p(M) \propto 2^-(M-1)
+                Nprime_vals = np.arange(0, Nmerge+1)
+                Nprime_weights = 1. / (2**(Nprime_vals))
+                Nprime_weights /= np.sum(Nprime_weights)
+                Nprime = int(np.random.choice(Nprime_vals, p=Nprime_weights, size=1))
                 # special treatment for Nprime=0 (1G BH)
                 if Nprime==0:
                     new_binary = self.firstgen_pop.sample(1)
