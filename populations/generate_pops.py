@@ -41,7 +41,7 @@ class FirstGenPop_LVC:
             "cos_tilt_1" : np.linspace(-1, 1, 100), "cos_tilt_2" : np.linspace(-1, 1, 100)}
 
 
-    def generate_population(self, Ndraws_per_post=100):
+    def generate_population(self, Ndraws_per_post=1000):
         """
         Wrapper function to generate a first-generation population
         """

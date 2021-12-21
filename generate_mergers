@@ -55,7 +55,7 @@ if args.firstgen_pop=='LVC':
     if args.firstgen_samples == None:
         raise NameError("If using the LVC hyperposterior samples for generating the 1G population, also need to specify the path to where the samples live!")
     pop = FirstGenPop_LVC.get_samples(args.firstgen_samples, Nsamps_from_post=1000)
-    pop.generate_population(Ndraws_per_post=100)
+    pop.generate_population(Ndraws_per_post=1000)
 elif args.firstgen_pop=='IMF':
     pop = FirstGenPop_IMF(int(1e6), Mmin=args.M_min, Mmax=args.M_max, amin=args.a_min, amax=args.a_max, alpha=-2.3)
     pop.generate_population()
