@@ -333,8 +333,9 @@ class MergerTree:
 
         Uses semi-analytic VT grid for determining detection probabilities and relative weights
         """
-        VT_grid = pd.read_hdf(pdet_grid, key=sensitivity)
-        self.mergers['pdets'], self.mergers['weights'] = detection_weights.selection_function(self.mergers, VT_grid)
+        for sens in sensitivity:
+            VT_grid = pd.read_hdf(pdet_grid, key=sens)
+            self.mergers['pdets_'+sens], self.mergers['weights_'+sens] = detection_weights.selection_function(self.mergers, VT_grid)
 
 
     def prune_by_vesc(self, vesc):
