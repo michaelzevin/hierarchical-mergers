@@ -292,7 +292,7 @@ class MergerTree:
         return sfr_icdf_interp(rnd_variates)
 
 
-    def assign_redshifts(self, tdelay_min=10, tdelay_max=100, z_max=1, tlb_min=10):
+    def assign_redshifts(self, tdelay_min=10, tdelay_max=100, z_max=1):
         """
         Assign redshifts to the mergers in merger tree
 
@@ -310,17 +310,15 @@ class MergerTree:
                     size=(self._Ntree, self._Nhierarch-1)))
 
         # generate redshift interpolant for converting back to redshift
-        z_grid = np.logspace(-3, np.log10(z_max), 1000)
+        z_grid = np.logspace(-5, np.log10(z_max), 10000)
         tlb_grid = cosmo.lookback_time(z_grid)
-        tlb_interp = interp1d(tlb_grid.to(u.Myr).value, z_grid, fill_value="extrapolate")
+        tlb_interp = interp1d(tlb_grid.to(u.Myr).value, z_grid, bounds_error=False, fill_value=-1)
 
         # for each tree, seed the initial redshift and apply delay times
         for idx, (tlb, tdelays) in enumerate(zip(tlb_birth, delay_times)):
             merger_tlbs = list(-1*tdelays)
             merger_tlbs.insert(0, tlb.to(u.Myr).value)
             merger_tlbs = np.cumsum(merger_tlbs)
-            # apply minimum to lookback time
-            merger_tlbs = np.where(merger_tlbs < tlb_min, tlb_min, merger_tlbs)
             # get redshift
             merger_redshifts = tlb_interp(merger_tlbs)
             self.mergers.loc[idx, 't_lookback'] = merger_tlbs
@@ -335,6 +333,7 @@ class MergerTree:
         """
         for sens in sensitivity:
             VT_grid = pd.read_hdf(pdet_grid, key=sens)
+            # cut out things with negative lookback times
             self.mergers['pdets_'+sens], self.mergers['weights_'+sens] = detection_weights.selection_function(self.mergers, VT_grid)
 
 
