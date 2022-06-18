@@ -42,8 +42,12 @@ argp.add_argument("--BH-budget", nargs="+", default=[50, 100, 500, 1000], help="
 
 argp.add_argument("--output-path", type=str, help="Location where to write merger tree to disk. If unspecified, will not save it.")
 argp.add_argument("--multiproc", type=int, help="Number of processors to parallelize on. By default, will parallelize on as many CPUs as available on machine.")
+argp.add_argument("--random-seed", type=int, help="Initialized random seed.")
 argp.add_argument("-V", "--verbose", action='store_true', help="Adds verbosity.")
 args = argp.parse_args()
+
+# --- Random Seed --- #
+np.random.seed(args.random_seed) if args.random_seed is not None else np.random.seed()
 
 # --- Multiprocessing --- #
 Ncores = args.multiproc if args.multiproc is not None else multiprocessing.cpu_count()
