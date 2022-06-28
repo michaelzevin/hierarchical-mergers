@@ -159,13 +159,13 @@ class MergerTree:
 
             # get the number of BHs used up so far
             if self._method=='NG1G':
-                Nbh = Nmerge+1
+                Nbh += 1
             elif self._method=='NGNG':
-                Nbh = 2**Nmerge
+                Nbh += 2**(Nmerge-1)
             elif self._method=='NGleNG':
-                Nbh = 2**(Nmerge-1) + 2**(Nprime)
+                Nbh += 2**(Nprime)
             elif self._method=='EqualPairing':
-                Nbh = 2**Nmerge
+                Nbh += 2**(Nmerge-1)
 
             df = df.append(pd.DataFrame([[m1, m2, q, a1, a2, tilt1, tilt2, spin_phase, M_merge, a_merge, vkick, Nmerge, Nbh]], columns=df_cols, index=[branch_idx]))
 
